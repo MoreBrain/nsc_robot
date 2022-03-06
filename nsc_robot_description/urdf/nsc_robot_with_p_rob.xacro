@@ -2,9 +2,9 @@
 
 <robot name="nsc_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
- <xacro:include filename="$(find nsc_robot_description)/urdf/nsc_robot_arm.xacro" />
+ <xacro:include filename="$(find nsc_robot_p_arm_description)/urdf/p_arm.urdf.xacro" />
  <xacro:include filename="$(find nsc_robot_description)/urdf/nsc_robot_platform.xacro" />
- <xacro:include filename="$(find nsc_robot_description)/urdf/nsc_robot.gazebo" />
+ <xacro:include filename="$(find nsc_robot_description)/urdf/nsc_robot_with_prob.gazebo" />
 
  <!-- Constants for robot dimensions -->
   <xacro:property name="PI" value="3.1415926535897931"/>
@@ -18,12 +18,18 @@
   <xacro:property name="height2" value="0.1" /> <!-- Link 2 -->
   <xacro:property name="height3" value="1" /> <!-- Link 3 -->
   <xacro:property name="camera_link" value="0.05" /> 
-  <xacro:property name="axel_offset" value="0.05" /> 
+  <xacro:property name="axel_offset" value="0.05" />
+
+
+    <xacro:property name="joint1_frame_rotation" value="0.0" />
+  <xacro:p_arm name="lio" parent="base_link" version="p_rob_2R">
+    <origin xyz="0 0 0.212" rpy="0 0 ${joint1_frame_rotation}" />
+  </xacro:p_arm>
 
 
   <transmission name="tran1">
     <type>transmission_interface/SimpleTransmission</type>
-    <joint name="joint_arm1">
+    <joint name="lio_joint1">
       <hardwareInterface>EffortJointInterface</hardwareInterface>
     </joint>
     <actuator name="motor1">
@@ -34,7 +40,7 @@
 
   <transmission name="tran2">
     <type>transmission_interface/SimpleTransmission</type>
-    <joint name="joint_arm2">
+    <joint name="lio_joint2">
       <hardwareInterface>EffortJointInterface</hardwareInterface>
     </joint>
     <actuator name="motor2">
@@ -45,7 +51,7 @@
 
   <transmission name="tran3">
     <type>transmission_interface/SimpleTransmission</type>
-    <joint name="joint_arm3">
+    <joint name="lio_joint3">
       <hardwareInterface>EffortJointInterface</hardwareInterface>
     </joint>
     <actuator name="motor3">
@@ -54,5 +60,36 @@
     </actuator>
   </transmission>
 
+    <transmission name="tran4">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="lio_joint4">
+      <hardwareInterface>EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="motor4">
+      <hardwareInterface>EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
 
+  <transmission name="tran5">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="lio_joint5">
+      <hardwareInterface>EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="motor5">
+      <hardwareInterface>EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+    <transmission name="tran6">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="lio_joint6">
+      <hardwareInterface>EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="motor6">
+      <hardwareInterface>EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
 </robot>

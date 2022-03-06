@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+<robot>
+
+  <!-- ros_control plugin -->
+  <gazebo>
+    <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+      <robotNamespace>/nsc_robot</robotNamespace>
+      <robotSimType>gazebo_ros_control/DefaultRobotHWSim</robotSimType>
+    </plugin>
+  </gazebo>
+
+  <!-- base_link -->
+  <gazebo reference="base_link">
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
+    <material>Gazebo/Orange</material>
+    <selfCollide>true</selfCollide>
+  </gazebo>
+
+    <!-- arm1 -->
+  <gazebo reference="lio_joint1">
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
+    <material>Gazebo/Black</material>
+
+  </gazebo>
+
+  <!-- arm1 -->
+  <gazebo reference="lio_joint2">
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
+    <material>Gazebo/Black</material>
+
+  </gazebo>
+
+  <!-- arm2 -->
+  <gazebo reference="lio_joint3">
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
+    <material>Gazebo/Orange</material>
+    <selfCollide>true</selfCollide>
+  </gazebo>
+
+    <!-- arm3 -->
+  <gazebo reference="lio_joint4">
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
+    <material>Gazebo/Orange</material>
+  </gazebo>
+
+    <!-- arm4 -->
+  <gazebo reference="lio_joint5">
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
+    <material>Gazebo/Orange</material>
+    <selfCollide>true</selfCollide>
+  </gazebo>
+
+    <!-- arm5 -->
+  <gazebo reference="lio_joint6">
+    <mu1>0.2</mu1>
+    <mu2>0.2</mu2>
+    <material>Gazebo/Orange</material>
+    <selfCollide>true</selfCollide>
+  </gazebo>
+
+
+</robot>
