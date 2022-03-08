@@ -1,12 +1,15 @@
 <?xml version="1.0"?>
 
 <robot name="nsc_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+ <xacro:property name="robot_type" value="$(env ROBOT_TYPE)"/>
+ <xacro:property name="robot_base_frame_rotation" value="$(env RDSCFG_fp_descriptions_robot_frame_rotation)"/>
+ <xacro:property name="joint1_frame_rotation" value="$(env RDSCFG_fp_descriptions_j1_frame_rotation)"/>
 
  <xacro:include filename="$(find nsc_robot_p_arm_description)/urdf/p_arm.urdf.xacro" />
- <xacro:include filename="$(find nsc_robot_description)/urdf/nsc_robot_platform.xacro" />
+ <!-- <xacro:include filename="$(find nsc_robot_description)/urdf/nsc_robot_platform.xacro" /> -->
  <xacro:include filename="$(find nsc_robot_description)/urdf/nsc_robot_with_prob.gazebo" />
  <xacro:include filename="$(find nsc_robot_p_grip_description)/urdf/p_grip.urdf.xacro" />
-
+ <xacro:include filename="$(find nsc_robot_platform_description)/urdf/platform_${robot_type}.urdf.xacro" />
  <!-- Constants for robot dimensions -->
   <xacro:property name="PI" value="3.1415926535897931"/>
   <xacro:property name="mass" value="1" /> <!-- arbitrary value for mass -->
@@ -24,7 +27,7 @@
 
     <xacro:property name="joint1_frame_rotation" value="0.0" />
 
-  <xacro:p_arm name="lio" parent="base_link" version="p_rob_2R">
+  <xacro:p_arm name="lio" parent="platform_base_link" version="p_rob_2R">
     <origin xyz="0 0 0.212" rpy="0 0 ${joint1_frame_rotation}" />
   </xacro:p_arm>
 

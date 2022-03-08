@@ -1,0 +1,203 @@
+<?xml version="1.0"?>
+<robot
+  xmlns:xacro="http://www.ros.org/wiki/xacro"
+  name="platform">
+
+  <xacro:property name="PI" value="3.1415926535897931"/>
+  <xacro:property name="mass" value="1" /> <!-- arbitrary value for mass -->
+  <xacro:property name="width" value="0.8" />
+  <xacro:property name="depth" value="1.0" />
+  <xacro:property name="radius_wheel" value="0.1" />
+  <xacro:property name="radius_small_wheel" value="0.05" />
+  <xacro:property name="length_wheel" value="0.05" />
+  <xacro:property name="height1" value="0.5" /> <!-- Link 1 -->
+  <xacro:property name="height2" value="0.1" /> <!-- Link 2 -->
+  <xacro:property name="height3" value="1" /> <!-- Link 3 -->
+  <xacro:property name="camera_link" value="0.05" />
+  <xacro:property name="axel_offset" value="0.05" />
+
+
+    <xacro:include filename="$(find fp_materials)/urdf/materials.urdf.xacro"/>
+
+    <xacro:property
+    name="platform_param"
+    value="${load_yaml('$(find platform_description)/config/LIOc.yaml')}" />
+
+  <xacro:property name="lidar_front_rotation" value="$(env RDSCFG_fp_descriptions_lidar_front_rotation)"/>
+  <xacro:property name="lidar_back_rotation" value="$(env RDSCFG_fp_descriptions_lidar_back_rotation)"/>
+
+  <link name="base_footprint">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.1 0.1 0.1"/>
+      </geometry>
+      <material name="orange"/>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.1 0.1 0.1"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="1"/>
+      <inertia ixx="1.0" ixy="0.0" ixz="0.0"
+                 iyy="1.0" iyz="0.0"
+                 izz="1.0" />
+    </inertial>
+  </link>
+
+
+
+  <joint name="base_joint" type="fixed">
+
+    <origin xyz="-0.113 0 0" rpy="0 0 0" />
+    <parent link="base_footprint"/>
+    <child link="platform_base_link" />
+  </joint>
+
+   <link name="platform_base_link">
+        <visual>
+          <geometry>
+               <mesh
+                filename="package://platform_description/meshes/platform_LIO.STL" />
+          </geometry>
+          <origin rpy="0 0 1.57" xyz="0 0 -0.07"/>
+          <material name="white"/>
+         </visual>
+
+       <collision>
+      <origin rpy="0 0 1.57" xyz="0 0 -0.07"/>
+          <geometry>
+               <mesh filename="package://platform_description/meshes/platform_LIO.STL" />
+          </geometry>
+    </collision>
+
+       <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="100"/>
+      <inertia ixx="1.0" ixy="0.0" ixz="0.0"
+                 iyy="1.0" iyz="0.0"
+                 izz="1.0" />
+    </inertial>
+  </link>
+
+<xacro:macro name="default_inertial" params="mass">
+    <inertial>
+            <mass value="${mass}" />
+            <inertia ixx="1.0" ixy="0.0" ixz="0.0"
+                 iyy="1.0" iyz="0.0"
+                 izz="1.0" />
+    </inertial>
+</xacro:macro>
+
+<xacro:macro name="wheel" params="parent_link name_link radius_wheel x y z rot_x rot_y rot_z">
+    <link name="${name_link}_leg">
+        <visual>
+            <geometry>
+                <cylinder radius="${radius_wheel}" length="${length_wheel}"/>
+            </geometry>
+            <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
+            <material name="white"/>
+        </visual>
+        <collision>
+            <geometry>
+                <cylinder radius="${radius_wheel}" length="${length_wheel}"/>
+            </geometry>
+            <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
+        </collision>
+        <xacro:default_inertial mass="1"/>
+    </link>
+
+    <joint name="base_to_${name_link}" type="continuous">
+        <parent link="${parent_link}"/>
+        <child link="${name_link}_leg"/>
+        <origin xyz="${x} ${y} ${z}" />
+        <axis xyz="${rot_x} ${rot_y} ${rot_z}"/>
+    </joint>
+    <!-- A bunch of stuff cut -->
+</xacro:macro>
+
+<xacro:wheel parent_link="base_footprint" name_link="wheel_front_left" radius_wheel="${radius_wheel}" x="${depth/4}" y="${width/4}" z="${-height1/2 - radius_wheel}" rot_x="0" rot_y="1" rot_z="0" />
+<xacro:wheel parent_link="base_footprint" name_link="wheel_front_right" radius_wheel="${radius_wheel}" x="${depth/4}" y="${-width/4}" z="${-height1/2 - radius_wheel}" rot_x="0" rot_y="1" rot_z="0" />
+
+  <!-- wheel_back_right vertical joint-->
+  <joint name="joint1_wheel_back_right" type="continuous">
+    <parent link="base_footprint"/>
+    <child link="wheel_back_right_bar"/>
+    <origin xyz="${-depth/4} ${-width/4} ${-height1/2}" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <dynamics damping="0.7"/>
+  </joint>
+
+  <link name="wheel_back_right_bar">
+    <visual>
+      <origin xyz="0 0 ${-height2/2}" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.01 0.01 ${height2}"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 ${-height2/2}" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.01 0.01 ${height2}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <origin xyz="0 0 ${-height2/2}" rpy="0 0 0"/>
+      <mass value="${mass}"/>
+      <inertia
+          ixx="${mass / 12.0 * (width*width + height2*height2)}" ixy="0.0" ixz="0.0"
+          iyy="${mass / 12.0 * (height2*height2 + width*width)}" iyz="0.0"
+          izz="${mass / 12.0 * (width*width + width*width)}"/>
+    </inertial>
+  </link>
+
+<xacro:wheel parent_link="wheel_back_right_bar" name_link="wheel_back_right" radius_wheel="${radius_wheel}" x="0" y="0" z="${-height2}" rot_x="0" rot_y="1" rot_z="0" />
+
+  <!-- wheel_back_left vertical joint-->
+  <joint name="joint1_wheel_back_left" type="continuous">
+    <parent link="base_footprint"/>
+    <child link="wheel_back_left_bar"/>
+    <origin xyz="${-depth/4} ${width/4} ${-height1/2}" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <dynamics damping="0.7"/>
+  </joint>
+
+  <link name="wheel_back_left_bar">
+    <visual>
+      <origin xyz="0 0 ${-height2/2}" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.01 0.01 ${height2}"/>
+      </geometry>
+      <material name="black"/>
+    </visual>
+
+    <collision>
+      <origin xyz="0 0 ${-height2/2}" rpy="0 0 0"/>
+      <geometry>
+        <box size="0.01 0.01 ${height2}"/>
+      </geometry>
+    </collision>
+
+    <inertial>
+      <origin xyz="0 0 ${-height2/2}" rpy="0 0 0"/>
+      <mass value="${mass}"/>
+      <inertia
+          ixx="${mass / 12.0 * (width*width + height2*height2)}" ixy="0.0" ixz="0.0"
+          iyy="${mass / 12.0 * (height2*height2 + width*width)}" iyz="0.0"
+          izz="${mass / 12.0 * (width*width + width*width)}"/>
+    </inertial>
+  </link>
+
+<xacro:wheel parent_link="wheel_back_left_bar" name_link="wheel_back_left" radius_wheel="${radius_wheel}" x="0" y="0" z="${-height2}" rot_x="0" rot_y="1" rot_z="0" />
+
+
+
+</robot>
