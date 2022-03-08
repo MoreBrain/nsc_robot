@@ -22,7 +22,7 @@
 
 
   <joint name="lio_joint1" type="revolute">
-    <insert_block name="origin"/> 
+    <xacro:insert_block name="origin"/> 
     <parent link="${parent}"/>
     <child link="${name}_link12"/>
     <limit
