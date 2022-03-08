@@ -5,6 +5,7 @@
  <xacro:include filename="$(find nsc_robot_p_arm_description)/urdf/p_arm.urdf.xacro" />
  <xacro:include filename="$(find nsc_robot_description)/urdf/nsc_robot_platform.xacro" />
  <xacro:include filename="$(find nsc_robot_description)/urdf/nsc_robot_with_prob.gazebo" />
+ <xacro:include filename="$(find nsc_robot_p_grip_description)/urdf/p_grip.urdf.xacro" />
 
  <!-- Constants for robot dimensions -->
   <xacro:property name="PI" value="3.1415926535897931"/>
@@ -22,9 +23,12 @@
 
 
     <xacro:property name="joint1_frame_rotation" value="0.0" />
+
   <xacro:p_arm name="lio" parent="base_link" version="p_rob_2R">
     <origin xyz="0 0 0.212" rpy="0 0 ${joint1_frame_rotation}" />
   </xacro:p_arm>
+
+      <xacro:p_grip  name="lio"  parent="lio_gripper_interface_link" version="p_grip_2F" orientation="up"/>
 
 
   <transmission name="tran1">
