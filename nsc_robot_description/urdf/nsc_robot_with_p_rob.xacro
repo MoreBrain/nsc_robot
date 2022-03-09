@@ -99,4 +99,27 @@
       <mechanicalReduction>1</mechanicalReduction>
     </actuator>
   </transmission>
+
+        <transmission name="trans7">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="base_to_wheel_front_left">
+      <hardwareInterface>EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="motor7">
+      <hardwareInterface>EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+            <transmission name="trans8">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="base_to_wheel_front_right">
+      <hardwareInterface>EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="motor8">
+      <hardwareInterface>EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
 </robot>

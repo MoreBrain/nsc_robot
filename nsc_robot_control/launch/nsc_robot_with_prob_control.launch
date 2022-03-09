@@ -11,7 +11,11 @@
 					  joint3_position_controller
 					  joint4_position_controller
 					  joint5_position_controller
-					  joint6_position_controller"/>
+					  joint6_position_controller
+					  wheel_front_right_position_controller
+                      wheel_front_left_position_controller
+
+					  "/>
 
   <!-- convert joint states to TF transforms for rviz, etc -->
   <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"
