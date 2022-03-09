@@ -28,7 +28,7 @@
     <xacro:property name="joint1_frame_rotation" value="0.0" />
 
   <xacro:p_arm name="lio" parent="platform_base_link" version="p_rob_2R">
-    <origin xyz="0 0 0.212" rpy="0 0 ${joint1_frame_rotation}" />
+    <origin xyz="0 0 0.382" rpy="0 0 ${joint1_frame_rotation}" />
   </xacro:p_arm>
 
       <xacro:p_grip  name="lio"  parent="lio_gripper_interface_link" version="p_grip_2F" orientation="up"/>

@@ -121,14 +121,14 @@
     <!-- A bunch of stuff cut -->
 </xacro:macro>
 
-<xacro:wheel parent_link="base_footprint" name_link="wheel_front_left" radius_wheel="${radius_wheel}" x="${depth/4}" y="${width/4}" z="${-height1/2 - radius_wheel}" rot_x="0" rot_y="1" rot_z="0" />
-<xacro:wheel parent_link="base_footprint" name_link="wheel_front_right" radius_wheel="${radius_wheel}" x="${depth/4}" y="${-width/4}" z="${-height1/2 - radius_wheel}" rot_x="0" rot_y="1" rot_z="0" />
+<xacro:wheel parent_link="platform_base_link" name_link="wheel_front_left" radius_wheel="${radius_wheel}" x="${depth/9}" y="${width/6}" z="${0.1 - radius_wheel}" rot_x="0" rot_y="1" rot_z="0" />
+<xacro:wheel parent_link="platform_base_link" name_link="wheel_front_right" radius_wheel="${radius_wheel}" x="${depth/9}" y="${-width/6}" z="${0.1 - radius_wheel}" rot_x="0" rot_y="1" rot_z="0" />
 
   <!-- wheel_back_right vertical joint-->
   <joint name="joint1_wheel_back_right" type="continuous">
-    <parent link="base_footprint"/>
+    <parent link="platform_base_link"/>
     <child link="wheel_back_right_bar"/>
-    <origin xyz="${-depth/4} ${-width/4} ${-height1/2}" rpy="0 0 0"/>
+    <origin xyz="${-depth/3} ${-width/8} 0.1" rpy="0 0 0"/>
     <axis xyz="0 0 1"/>
     <dynamics damping="0.7"/>
   </joint>
@@ -163,9 +163,9 @@
 
   <!-- wheel_back_left vertical joint-->
   <joint name="joint1_wheel_back_left" type="continuous">
-    <parent link="base_footprint"/>
+    <parent link="platform_base_link"/>
     <child link="wheel_back_left_bar"/>
-    <origin xyz="${-depth/4} ${width/4} ${-height1/2}" rpy="0 0 0"/>
+    <origin xyz="${-depth/3} ${width/8} 0.1" rpy="0 0 0"/>
     <axis xyz="0 0 1"/>
     <dynamics damping="0.7"/>
   </joint>
