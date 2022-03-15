@@ -37,3 +37,8 @@ nsc_robot:
     type: effort_controllers/JointPositionController
     joint: base_to_wheel_front_left
     pid: { p: 100.0, i: 0.01, d: 10.0 }
+
+  lio_gripper_joint_position_controller:
+    type: effort_controllers/JointPositionController
+    joint: lio_gripper_joint
+    pid: { p: 100.0, i: 0.01, d: 10.0 }
