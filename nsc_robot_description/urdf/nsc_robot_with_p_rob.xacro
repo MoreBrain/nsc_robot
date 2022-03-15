@@ -31,7 +31,6 @@
  </sensor_d435>
 
 
-
   <xacro:p_arm name="lio" parent="platform_base_link" version="p_rob_2R">
     <origin xyz="0 0 0.382" rpy="0 0 ${joint1_frame_rotation}" />
   </xacro:p_arm>
@@ -137,4 +136,16 @@
       <mechanicalReduction>1</mechanicalReduction>
     </actuator>
   </transmission>
+
+        <transmission name="trans10">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="lio_passive_gripper_joint">
+      <hardwareInterface>EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="motor10">
+      <hardwareInterface>EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
 </robot>

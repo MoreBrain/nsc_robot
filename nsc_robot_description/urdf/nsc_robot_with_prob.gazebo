@@ -63,5 +63,34 @@
     <selfCollide>true</selfCollide>
   </gazebo>
 
+  <gazebo reference="lio_link12">
+    <material>Gazebo/Orange</material>
+  </gazebo>
+
+    <gazebo reference="lio_link34">
+    <material>Gazebo/Orange</material>
+  </gazebo>
+
+      <gazebo reference="lio_link56">
+    <material>Gazebo/Orange</material>
+  </gazebo>
+
+  <gazebo reference="platform_base_link">
+    <material>Gazebo/Orange</material>
+  </gazebo>
+
+  <gazebo reference="lio_gripper_link">
+    <material>Gazebo/Orange</material>
+  </gazebo>
+
+    <gazebo reference="lio_right_finger">
+    <material>Gazebo/Black</material>
+  </gazebo>
+
+    <gazebo reference="lio_left_finger">
+    <material>Gazebo/Black</material>
+  </gazebo>
+
+
 
 </robot>

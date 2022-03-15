@@ -9,14 +9,18 @@
 
   <!-- We resume the logic in empty_world.launch, changing only the name of the world to be launched -->
   <include file="$(find gazebo_ros)/launch/empty_world.launch">
-    <!-- <arg name="world_name" value="$(find aws_robomaker_small_house_world)/worlds/small_house.world"/> -->
-    <arg name="world_name" value="$(find nsc_robot_gazebo)/worlds/office_1.world"/>
+    <arg name="world_name" value="$(find aws_robomaker_small_house_world)/worlds/small_house.world"/>
+    <!-- <arg name="world_name" value="$(find nsc_robot_gazebo)/worlds/office_1.world"/> -->
     <arg name="debug" value="$(arg debug)" />
     <arg name="gui" value="$(arg gui)" />
     <arg name="paused" value="$(arg paused)"/>
     <arg name="use_sim_time" value="$(arg use_sim_time)"/>
     <arg name="headless" value="$(arg headless)"/>
   </include>
+
+  <!--test mimic control
+  <rosparam file="$(find mimic_joint_gazebo_tutorial)/config/ros_control/joint_trajectory_controller.yaml" command="load" />
+  -->
 
   <!-- Load the URDF into the ROS Parameter Server -->
   <param name="robot_description"
@@ -29,4 +33,6 @@
   <!-- ros_control nsc_robot launch file -->
   <!--include file="$(find nsc_robot_control)/launch/nsc_robot_control.launch" /-->
 
+  <!-- test Load teleop -->
+  <!-- <node name="rqt_joint_trajectory_controller" pkg="rqt_joint_trajectory_controller" type="rqt_joint_trajectory_controller" /> -->
 </launch>

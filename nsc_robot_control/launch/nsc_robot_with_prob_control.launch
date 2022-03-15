@@ -15,7 +15,7 @@
 					  wheel_front_right_position_controller
                       wheel_front_left_position_controller
                       lio_gripper_joint_position_controller
-
+                      lio_passive_gripper_joint_position_controller
 					  "/>
 
   <!-- convert joint states to TF transforms for rviz, etc -->

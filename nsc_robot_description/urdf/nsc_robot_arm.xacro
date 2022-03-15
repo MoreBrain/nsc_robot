@@ -12,6 +12,8 @@
   <xacro:property name="camera_link" value="0.05" /> <!-- Size of square 'camera' box -->
   <xacro:property name="axel_offset" value="0.05" /> <!-- Space btw top of beam and the each joint -->
 
+
+
 <xacro:macro name="arm" params="parent_link name_link height width x y z rot_x rot_y rot_z">
     <link name="${name_link}">
 
