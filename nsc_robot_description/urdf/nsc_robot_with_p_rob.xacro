@@ -25,11 +25,13 @@
  <xacro:include filename="$(find nsc_robot_description)/urdf/nsc_robot_with_prob.gazebo" />
  <xacro:include filename="$(find nsc_robot_p_grip_description)/urdf/p_grip.urdf.xacro" />
  <xacro:include filename="$(find nsc_robot_platform_description)/urdf/platform_${robot_type}.urdf.xacro" />
+
+ <!--
  <xacro:include filename="$(find realsense2_description)/urdf/_d435.urdf.xacro" />
  <sensor_d435 parent="platform_base_link">
      <origin xyz="0.26 0.0 0.06" rpy="0 -0.3 0"/>
  </sensor_d435>
-
+  -->
 
   <xacro:p_arm name="lio" parent="platform_base_link" version="p_rob_2R">
     <origin xyz="0 0 0.382" rpy="0 0 ${joint1_frame_rotation}" />

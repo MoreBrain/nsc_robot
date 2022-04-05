@@ -1,11 +1,13 @@
 <?xml version="1.0"?>
 
 <robot name="nsc_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
-
+ <xacro:include filename="$(find onebot_description)/urdf/caster.urdf.xacro" />
 
  <!-- Constants for robot dimensions -->
   <xacro:property name="PI" value="3.1415926535897931"/>
-  <xacro:property name="mass" value="1" /> <!-- arbitrary value for mass -->
+  <xacro:property name="mass" value="0.1" /> <!-- arbitrary value for mass -->
+  <xacro:property name="mass_wheel" value="0.2" /> <!-- arbitrary value for mass -->
+  <xacro:property name="mass_base" value="30" />
   <xacro:property name="width" value="0.8" />
   <xacro:property name="depth" value="1.0" />
   <xacro:property name="radius_wheel" value="0.1" />
@@ -16,17 +18,28 @@
   <xacro:property name="height3" value="1" /> <!-- Link 3 -->
   <xacro:property name="camera_link" value="0.05" /> 
   <xacro:property name="axel_offset" value="0.05" /> 
+  <xacro:arg name="mesh_enabled" default="false" />
 
-<xacro:macro name="default_inertial" params="mass">
+
+<xacro:macro name="default_inertial_wheel" params="mass radius_wheel length_wheel" >
+    <inertial>
+            <mass value="${mass}" />
+            <inertia ixx="${0.25 * mass * radius_wheel**2 + 1/12 * mass * length_wheel**2}" ixy="0.0" ixz="0.0"
+                 iyy="${1/2 * mass * radius_wheel**2}" iyz="0.0"
+                 izz="${0.25 * mass * radius_wheel**2 + 1/12 * mass * length_wheel**2}" />
+    </inertial>
+</xacro:macro>
+
+<xacro:macro name="default_inertial" params="mass" >
     <inertial>
             <mass value="${mass}" />
             <inertia ixx="0.1" ixy="0.0" ixz="0.0"
-                 iyy="0.1" iyz="0.0"
+                 iyy="0.1"
                  izz="0.1" />
     </inertial>
 </xacro:macro>
 
-<xacro:macro name="wheel" params="parent_link name_link radius_wheel x y z rot_x rot_y rot_z">
+<xacro:macro name="wheel" params="parent_link name_link radius_wheel mass_wheel length_wheel x y z rot_x rot_y rot_z">
     <link name="${name_link}_leg">
         <visual>
             <geometry>
@@ -41,7 +54,7 @@
             </geometry>
             <origin xyz="0 0 0" rpy="${PI/2} 0 0"/>
         </collision>
-        <xacro:default_inertial mass="1"/>
+        <xacro:default_inertial_wheel mass="${mass_wheel}" radius_wheel="${radius_wheel}" length_wheel="${length_wheel}"/>
     </link>
 
     <joint name="base_to_${name_link}" type="continuous">
@@ -53,8 +66,8 @@
     <!-- A bunch of stuff cut -->
 </xacro:macro>
 
-<xacro:wheel parent_link="base_link" name_link="wheel_front_left" radius_wheel="${radius_wheel}" x="${depth/4}" y="${width/4}" z="${-height1/2 - radius_wheel}" rot_x="0" rot_y="1" rot_z="0" />
-<xacro:wheel parent_link="base_link" name_link="wheel_front_right" radius_wheel="${radius_wheel}" x="${depth/4}" y="${-width/4}" z="${-height1/2 - radius_wheel}" rot_x="0" rot_y="1" rot_z="0" />
+<xacro:wheel parent_link="base_link" name_link="wheel_front_left" radius_wheel="${radius_wheel}" mass_wheel="${mass_wheel}" length_wheel="${length_wheel}" x="${depth/4}" y="${width/4}" z="${-height1/2 - radius_wheel}" rot_x="0" rot_y="1" rot_z="0" />
+<xacro:wheel parent_link="base_link" name_link="wheel_front_right" radius_wheel="${radius_wheel}" mass_wheel="${mass_wheel}" length_wheel="${length_wheel}" x="${depth/4}" y="${-width/4}" z="${-height1/2 - radius_wheel}" rot_x="0" rot_y="1" rot_z="0" />
 
   <!-- Base Link -->
   <link name="base_link">
@@ -75,7 +88,7 @@
 
     <inertial>
       <origin xyz="0 0 0" rpy="0 0 0"/>
-      <mass value="${mass}"/>
+      <mass value="${mass_base}"/>
       <inertia
           ixx="${mass / 12.0 * (width*width + height1*height1)}" ixy="0.0" ixz="0.0"
           iyy="${mass / 12.0 * (height1*height1 + width*width)}" iyz="0.0"
@@ -83,8 +96,15 @@
     </inertial>
   </link>
 
+    <xacro:caster caster_prefix="left_rear" parent_link="base_link" >
+        <origin xyz="${-depth/4} ${width/4} ${-height1/2 - 2 * radius_wheel + 0.065}" rpy="0 0 0" />
+    </xacro:caster>
 
-  <!-- wheel_back_right vertical joint-->
+    <xacro:caster caster_prefix="right_rear" parent_link="base_link" >
+        <origin xyz="${-depth/4} ${-width/4} ${-height1/2 - 2 * radius_wheel + 0.065}" rpy="0 0 0" />
+    </xacro:caster>
+
+  <!-- wheel_back_right vertical joint
   <joint name="joint1_wheel_back_right" type="continuous">
     <parent link="base_link"/>
     <child link="wheel_back_right_bar"/>
@@ -120,8 +140,8 @@
   </link>
 
 <xacro:wheel parent_link="wheel_back_right_bar" name_link="wheel_back_right" radius_wheel="${radius_wheel}" x="0" y="0" z="${-height2}" rot_x="0" rot_y="1" rot_z="0" />
-
-  <!-- wheel_back_left vertical joint-->
+  -->
+  <!-- wheel_back_left vertical joint
   <joint name="joint1_wheel_back_left" type="continuous">
     <parent link="base_link"/>
     <child link="wheel_back_left_bar"/>
@@ -157,5 +177,5 @@
   </link>
 
 <xacro:wheel parent_link="wheel_back_left_bar" name_link="wheel_back_left" radius_wheel="${radius_wheel}" x="0" y="0" z="${-height2}" rot_x="0" rot_y="1" rot_z="0" />
-
+  -->
 </robot>
