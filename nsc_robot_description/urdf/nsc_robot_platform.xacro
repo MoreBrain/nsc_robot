@@ -2,6 +2,7 @@
 
 <robot name="nsc_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
  <xacro:include filename="$(find onebot_description)/urdf/caster.urdf.xacro" />
+ <xacro:include filename="$(find nsc_robot_description)/urdf/nsc_robot_platform.gazebo" />
 
  <!-- Constants for robot dimensions -->
   <xacro:property name="PI" value="3.1415926535897931"/>
@@ -178,4 +179,29 @@
 
 <xacro:wheel parent_link="wheel_back_left_bar" name_link="wheel_back_left" radius_wheel="${radius_wheel}" x="0" y="0" z="${-height2}" rot_x="0" rot_y="1" rot_z="0" />
   -->
+
+  <transmission name="tran1">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="base_to_wheel_front_left">
+      <hardwareInterface>EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="motor1">
+      <hardwareInterface>EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+
+  </transmission>
+    <transmission name="tran2">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="base_to_wheel_front_right">
+      <hardwareInterface>EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="motor2">
+      <hardwareInterface>EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+
+
+
 </robot>
