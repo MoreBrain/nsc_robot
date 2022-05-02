@@ -1,0 +1,3 @@
+[submodule "onebot_ws"]
+	path = onebot_ws
+	url = https://github.com/pasindu-sandima/onebot_ws
