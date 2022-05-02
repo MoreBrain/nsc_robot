@@ -3,7 +3,7 @@
 <robot name="nsc_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
  <xacro:include filename="$(find onebot_description)/urdf/caster.urdf.xacro" />
  <xacro:include filename="$(find nsc_robot_description)/urdf/nsc_robot_platform.gazebo" />
-
+ <xacro:include filename="$(find nsc_robot_description)/urdf/lidar.xacro" />
  <!-- Constants for robot dimensions -->
   <xacro:property name="PI" value="3.1415926535897931"/>
   <xacro:property name="mass" value="0.1" /> <!-- arbitrary value for mass -->

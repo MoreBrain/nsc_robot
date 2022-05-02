@@ -1,65 +1,92 @@
-<?xml version="1.0"?>
-<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="lazDar">
-  <xacro:property name="base_radius" value="0.05"/>
-  <xacro:property name="base_height" value="0.05"/>
-  <xacro:property name="laz_radius" value="0.04"/>
-  <xacro:property name="laz_height" value="0.1"/>
+<?xml version="1.0" ?>
+<robot xmlns:xacro="http://ros.org/wiki/xacro">
 
-  <gazebo reference="laz_base">
+  <xacro:property name="PI" value="3.1415926535897931"/>
+
+<xacro:macro name="default_inertial_horizontal_wheel" params="mass radius_wheel length_wheel" >
+    <inertial>
+            <mass value="${mass}" />
+            <inertia ixx="${0.25 * mass * radius_wheel**2 + 1/12 * mass * length_wheel**2}" ixy="0.0" ixz="0.0"
+                 iyy="${1/2 * mass * radius_wheel**2}" iyz="0.0"
+                 izz="${0.25 * mass * radius_wheel**2 + 1/12 * mass * length_wheel**2}" />
+    </inertial>
+</xacro:macro>
+
+<xacro:macro name="horizontal_wheel" params="parent_link name_link radius_wheel mass_wheel length_wheel x y z rot_x rot_y rot_z joint_type lidar_given">
+    <link name="${name_link}">
+        <visual>
+            <geometry>
+                <cylinder radius="${radius_wheel}" length="${length_wheel}"/>
+            </geometry>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <material name="white"/>
+        </visual>
+        <collision>
+            <geometry>
+                <cylinder radius="${radius_wheel}" length="${length_wheel}"/>
+            </geometry>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+        </collision>
+        <xacro:default_inertial_horizontal_wheel mass="${mass_wheel}" radius_wheel="${radius_wheel}" length_wheel="${length_wheel}"/>
+    </link>
+
+    <joint name="joint_${name_link}" type="${joint_type}">
+        <parent link="${parent_link}"/>
+        <child link="${name_link}"/>
+        <origin xyz="${x} ${y} ${z}" />
+        <axis xyz="${rot_x} ${rot_y} ${rot_z}"/>
+    </joint>
+    <!-- A bunch of stuff cut -->
+
+
+
+   <xacro:if value="${lidar_given}">
+     <gazebo reference="${name_link}">
     <material>Gazebo/Grey</material>
     <mu1>0.2</mu1>
     <mu2>0.2</mu2>
-  </gazebo>
 
-  <link name="laz_base">
-    <visual>
-      <geometry>
-        <cylinder length="${base_height}" radius="${base_radius}"/>
-      </geometry>
-    </visual>
+   <sensor type="ray" name="${name_link}_lidar">
 
-    <collision>
-      <geometry>
-        <cylinder length="${base_height}" radius="${base_radius}"/>
-      </geometry>
-    </collision>
+     <plugin name="ros_ray_sensor_controller" filename="libgazebo_ros_laser.so">
+        <topicName>/nsc_robot/laser/scan</topicName>
+        <frameName>${name_link}</frameName>
+     </plugin>
 
-    <inertial>
-      <mass value="0.1"/>
-      <inertia ixx="${(1/12) * 0.1 * (3 * base_radius * base_radius + base_height * base_height)}" ixy="0" ixz="0" iyy="${(1/12) * 0.1 * (3 * base_radius * base_radius + base_height * base_height)}" iyz="0" izz="${(1/2) * 0.1 * base_radius * base_radius}"/>
-    </inertial>
-  </link>
+       <always_on>true</always_on>
+       <pose>0 0 0 0 0 0</pose>
+       <visualize>true</visualize>
+       <update_rate>30</update_rate>
+       <ray>
+         <scan>
+           <horizontal>
+             <samples>32</samples>
+             <resolution>1</resolution>
+             <min_angle>-3.1415</min_angle>
+             <max_angle>3.1415</max_angle>
+           </horizontal>
+         </scan>
+          <range>
+           <min>0.5</min>
+           <max>5.0</max>
+           <resolution>0.02</resolution>
+         </range>
+      </ray>
+   </sensor>
+   </gazebo>
+   </xacro:if>
 
-  <gazebo reference="laz_rot">
-    <material>Gazebo/RedGlow</material>
-    <mu1>0.2</mu1>
-    <mu2>0.2</mu2>
-  </gazebo>
 
-  <link name="laz_rot">
-    <visual>
-      <geometry>
-        <cylinder length="${laz_height}" radius="${laz_radius}"/>
-      </geometry>
-    </visual>
 
-    <collision>
-      <geometry>
-        <cylinder length="${laz_height}" radius="${laz_radius}"/>
-      </geometry>
-    </collision>
+</xacro:macro>
 
-    <inertial>
-      <mass value="0.1"/>
-      <inertia ixx="${(1/12) * 0.1 * (3 * laz_radius * laz_radius + laz_height * laz_height)}" ixy="0" ixz="0" iyy="${(1/12) * 0.1 * (3 * laz_radius * laz_radius + laz_height * laz_height)}" iyz="0" izz="${(1/2) * 0.1 * laz_radius * laz_radius}"/>
-    </inertial>
-  </link>
+<xacro:horizontal_wheel parent_link="base_link" name_link="lidar_base" radius_wheel="0.04" mass_wheel="1.0" length_wheel="0.05"
+             x="0.0" y="0.0" z="${-(0.5/2 + 0.05/2)}" rot_x="0" rot_y="0" rot_z="1" joint_type="fixed" lidar_given="${False}"/>
 
-  <joint name="lazRot" type="continuous">
-    <parent link="laz_base"/>
-    <child link="laz_rot"/>
-    <axis xyz="0 0 1"/>
-    <origin xyz = "0 0 ${base_height/2}"/>
-    <dynamics friction="0.1"/>
-  </joint>
+<xacro:horizontal_wheel parent_link="lidar_base" name_link="lidar_top" radius_wheel="0.04" mass_wheel="0.3" length_wheel="0.05"
+             x="0.0" y="0.0" z="-0.05" rot_x="0" rot_y="0" rot_z="1" joint_type="fixed" lidar_given="${True}"/>
+
+
+
+
 </robot>
