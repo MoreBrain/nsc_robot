@@ -7,7 +7,7 @@ import sys
 from itertools import product
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
-from gazebo_msgs.msg import ModelState
+from gazebo_msgs.msg import ModelState, LinkStates
 from sensor_msgs.msg import LaserScan
 from tf.transformations import euler_from_quaternion, quaternion_from_euler
 import math
@@ -20,27 +20,28 @@ class ControlNode:
         rospy.init_node('control_node', anonymous=False)
         #TODO
         # self. ... =
-        self.actions = [straight, right, left]
-        # self.states = [[goal_reached, mid_far_away, far_away]
-        #                [straight_ahead, left_from_robot, right_from_robot]
+        self.actions = ["straight", "right", "left"]
+        self.states = [["goal_reached", "away"],
+                       ["straight_ahead", "left_from_robot", "right_from_robot"]]
         #                [obstacle_ahead], [obstacle_right], [obstacle_behind], [obstacle_left]
 
         self.action_space = self.create_actions(action_no=len(self.actions))
-        self.state_space = self.create_state_space(state_dims=state_dims)
+        self.state_space = self.create_state_space(states=self.states)
         self.data_path = '/home/nsc/repos/ros_my_packages/catkin_ws/src/nsc_robot/nsc_robot_control/Data' # TODO get it working on every PC
         self.Q_table_untrained_source = self.data_path + '/Qtable_untrained.csv'
         self.Q_table_trained_source = self.data_path + '/Qtable_trained.csv'
         self.Q_table = None
-        self.rate = rospy.Rate(5)
+        self.rate = rospy.Rate(1)
         # self.Q_table = self.read_Q_table(Q_table_source+'/Qtable.csv')
         # print('Initial Q-table:')
         # print(Q_table[:5])
         self.lidar_distances_close = 1.0
         self.lidar_distances_middle = 1.5
 
-        self.epsilon = 0.2
+        self.epsilon = 0.1
         self.episodes = 20
         self.training_iterations = 50
+        self.running_iterations = 50
         self.alpha = 0.1  # Learning rate
         self.gamma = 0.1  # Discount factor
 
@@ -55,8 +56,8 @@ class ControlNode:
         self.randomized_start_pos=True
         self.x_odom_pos = 0.0
         self.y_odom_pos = 0.0
-        self.x_goal_pos = 0.2
-        self.y_goal_pos = 0.2
+        self.x_goal_pos = 0.0
+        self.y_goal_pos = 0.0
         self.lidar_distances = None
         self.lidar_angles = None
         self.MAX_LIDAR_DISTANCE = 5.0
@@ -64,50 +65,58 @@ class ControlNode:
         self.theta_goal_pos = 0.5
         self.yaw_odom_pos = None
         self.yaw_odom_pos_degree = None
+        self.heading_angle_state = None
 
-        self.const_linear_speed_forward = 0.08
+        self.const_linear_speed_forward = 0.5
         self.const_angular_speed_forward = 0.0
-        self.const_linear_speed_turn = 0.06
-        self.const_angular_speed_turn = 0.4
+        self.const_linear_speed_turn = 0.0
+        self.const_angular_speed_turn = 0.5
 
         self.setPosPub = rospy.Publisher('/gazebo/set_model_state', ModelState, queue_size=10)
         self.velPub = rospy.Publisher('/cmd_vel', Twist, queue_size=10)
 
 
     def run_control(self):
-        Q_table = np.random.rand(726, 4)
-        np.savetxt(self.Q_table_trained_source, Q_table, delimiter=' , ')
+        #Q_table = np.random.rand(len(self.state_space), len(self.actions))
+        #np.savetxt(self.Q_table_trained_source, Q_table, delimiter=' , ')
 
         rospy.Subscriber('/scan', LaserScan, self.get_lidar_readings_callback)
         rospy.Subscriber('/odom', Odometry, self.get_position_callback)
+        #rospy.Subscriber('/gazebo/link_states', LinkStates, self.get_pose_callback) use if /odom does not work
         sleep(1)
-        (x, y, theta) = self.robot_set_pos(randomized=self.randomized_start_pos)
+
         self.Q_table = self.readQtable(self.Q_table_trained_source)
         #print("used self.Q_table", self.Q_table)
 
         while not rospy.is_shutdown():
-            (state_ind, current_state) = self.get_state()
-            goal_reached = self.check_goal_reached(current_state)
-            crash = self.check_crash()
-            if goal_reached or crash:
-                print("goal_reached or crash", goal_reached, crash)
-                rospy.signal_shutdown('End of testing!')
-                return
+            for ep in range(self.episodes):
 
-            a_ind = self.getBestAction(self.Q_table, state_ind)
-            self.robotDoAction(a_ind)
-            print("current_state", current_state, "action_ind", a_ind)
-            self.rate.sleep()
+                (x, y, theta) = self.robot_set_pos(randomized=self.randomized_start_pos)
+                for i in range(self.running_iterations):
+                    print("iteration", i)
+                    (state_ind, current_state) = self.get_state()
+                    goal_reached = self.check_goal_reached(current_state)
+                    crash = self.check_crash()
+                    if goal_reached or crash:
+                        print("goal_reached or crash", goal_reached, crash)
+                        #rospy.signal_shutdown('End of testing!')
+                        break
+
+                    a_ind = self.getBestAction(self.Q_table, state_ind)
+                    self.robotDoAction(a_ind)
+                    print("current_state", current_state, "action_ind", a_ind)
+                    self.rate.sleep()
 
     def run_learning(self):
 
-        rospy.Subscriber('/scan', LaserScan , self.get_lidar_readings_callback)
+        rospy.Subscriber('/scan', LaserScan, self.get_lidar_readings_callback)
         rospy.Subscriber('/odom', Odometry, self.get_position_callback)
         sleep(1)
         # init Q_table
         self.Q_table = self.initialize_Q_table(len(self.state_space), len(self.actions))
         while not rospy.is_shutdown():
             for ep in range(self.episodes):
+                print("episode: ", ep)
 
                 (x, y, theta) = self.robot_set_pos(randomized=self.randomized_start_pos)
                 start_of_loop_time = rospy.Time.now()  # init
@@ -145,8 +154,9 @@ class ControlNode:
                     if goal_reached:
                         print("goal_reached or crash", goal_reached)
                         # if goal reached go into next iteration
-                        break
+                        continue
                     self.rate.sleep()
+            print("finished self.Q_table ", self.Q_table)
             self.save_Q_table(self.Q_table_trained_source, self.Q_table)
             rospy.signal_shutdown('End of learning!')
 
@@ -178,10 +188,10 @@ class ControlNode:
 
 
             # obstacles too close
-            if current_state[2] == 2 or current_state[3] == 2 or current_state[4] == 2 or current_state[5] == 2:
-                r_close_obstacle = -2
-            else:
-                r_close_obstacle = 0
+            #if current_state[2] == 2 or current_state[3] == 2 or current_state[4] == 2 or current_state[5] == 2:
+            #    r_close_obstacle = -2
+            #else:
+            #    r_close_obstacle = 0
 
             # the more time needed, the more negative reward
             r_time_duration = -1
@@ -192,7 +202,7 @@ class ControlNode:
             else:
                 r_action = -0.1"""
 
-            total_reward = r_time_duration  + r_goal_distance + r_close_obstacle + r_heading # + r_action
+            total_reward = r_time_duration  + r_goal_distance + r_heading # + r_action + r_close_obstacle
             print("total_reward", total_reward)
             return total_reward
 
@@ -200,8 +210,10 @@ class ControlNode:
     def updateQTable(self, Q_table, state_ind, next_state_ind, action, reward, alpha, gamma):
         if self.STATE_SPACE_IND_MIN <= state_ind <= self.STATE_SPACE_IND_MAX and \
                 self.STATE_SPACE_IND_MIN <= next_state_ind <= self.STATE_SPACE_IND_MAX:
+            print("old Q-value:", Q_table[state_ind, :], "action: ", action)
             Q_table[state_ind, action] = (1 - alpha) * Q_table[state_ind, action] + alpha * \
                                          (reward + gamma * max(Q_table[next_state_ind, :]) - Q_table[state_ind, action])
+            print("new Q-value:", Q_table[state_ind, :], "action: ", action)
         else:
             print("state_ind", state_ind, "next_state_ind", next_state_ind, "are NOT ok")
         return Q_table
@@ -215,11 +227,11 @@ class ControlNode:
         self.velPub.publish(velMsg)
 
     def robotTurnLeft(self):
-        velMsg = self.createVelMsg(self.const_linear_speed_turn, +self.const_linear_speed_turn)
+        velMsg = self.createVelMsg(self.const_linear_speed_turn, +self.const_angular_speed_turn)
         self.velPub.publish(velMsg)
 
     def robotTurnRight(self):
-        velMsg = self.createVelMsg(self.const_angular_speed_turn, -self.const_angular_speed_turn)
+        velMsg = self.createVelMsg(self.const_linear_speed_turn, -self.const_angular_speed_turn)
         self.velPub.publish(velMsg)
 
     def robotStop(self):
@@ -244,15 +256,20 @@ class ControlNode:
 
     def robotDoAction(self, action):
         if action == 0:
-            self.robotTurnLeft() #robotGoForward()
+            self.robotGoForward()
+            print("action: ", action, "robotGoForward")
         elif action == 1:
             self.robotTurnRight()
+            print("action: ", action, "robotTurnRight")
         elif action == 2:
-            self.robotGoBackward()
-        elif action == 3:
             self.robotTurnLeft()
+            print("action: ", action, "robotTurnLeft")
+        elif action == 3:
+            self.robotGoBackward()
+            print("action: ", action, "robotGoBackward")
         elif action == 4:
             self.robotStop()
+            print("action: ", action, "robotStop")
         else:
             print("Invalid action id")
 
@@ -282,12 +299,14 @@ class ControlNode:
 
         """
         robot_pos_state = self.robot_pos_discretization()
-        lidar_state = self.lidar_discretization(self.lidar_distances, self.lidar_angles)
-        current_state = list(robot_pos_state) + list(lidar_state)
-
+        #lidar_state = self.lidar_discretization(self.lidar_distances, self.lidar_angles)
+        current_state = list(robot_pos_state) #+ list(lidar_state)
+        #print("current_state", current_state)
+        #print("state_space", self.state_space)
         ss = np.where(np.all(self.state_space == np.array([current_state]), axis=1))
+        #print("ss", ss)
         state_ind = int(ss[0])
-        print("state_ind, current_state", state_ind, current_state)
+        #print("state_ind, current_state", state_ind, current_state)
         return (state_ind, current_state)
 
     def check_goal_reached(self, current_state):
@@ -355,25 +374,32 @@ class ControlNode:
 
     def robot_pos_discretization(self):
         print("self.x_odom_pos", self.x_odom_pos, "self.y_odom_pos", self.y_odom_pos)
-        self.heading_angle = math.degrees(math.atan2(self.y_goal_pos-self.y_odom_pos, self.x_goal_pos - self.x_odom_pos))
+        self.goal_heading_angle = math.degrees(math.atan2(self.y_goal_pos-self.y_odom_pos, self.x_goal_pos - self.x_odom_pos))
+        self.robot_heading_angle = self.yaw_odom_pos_degree
+        print("robot_heading_angle, goal_heading_angle", self.robot_heading_angle, self.goal_heading_angle)
+        self.delta_heading_goal_robot = self.goal_heading_angle - self.robot_heading_angle
         self.distance_to_goal = ((self.x_odom_pos - self.x_goal_pos)**2 + (self.y_odom_pos - self.y_goal_pos)**2)**0.5
-        print("self.heading_angle", self.heading_angle, "self.distance_to_goal", self.distance_to_goal)
+        #print("self.delta_heading_goal_robot", self.delta_heading_goal_robot,"self.heading_angle", self.goal_heading_angle, "self.distance_to_goal", self.distance_to_goal)
         #self.theta_goal_pos
         #self.yaw_odom_pos
         # 0 starts at 90 looking at a compass (see atan2)
-        if 95 >= self.heading_angle >= 85:
+        if 15 >= self.delta_heading_goal_robot >= -15:
             self.heading_angle_state = 0
-        elif 85 >= self.heading_angle >= -90:
+            print("state - goal straight ahead")
+        elif 180 >= self.delta_heading_goal_robot >= 5 or -355 >= self.delta_heading_goal_robot >= -181:
             self.heading_angle_state = 1
-        else:
+            print("state - goal straight ahead")
+        elif -5 >= self.delta_heading_goal_robot >= -180 or 355 >= self.delta_heading_goal_robot >= 180:
             self.heading_angle_state = 2
 
-        if 0.1 <= self.distance_to_goal <= 0.0:
+        if 0.0 <= self.distance_to_goal <= 0.6:
             self.distance_to_goal_state = 0
-        elif 0.1 < self.distance_to_goal <= 1.0:
-            self.distance_to_goal_state = 1
+        #elif 0.1 < self.distance_to_goal <= 1.0:
+        #    self.distance_to_goal_state = 1
         else:
-            self.distance_to_goal_state = 2
+            self.distance_to_goal_state = 1
+
+        print("distance to goal: ", self.distance_to_goal, "delta_heading_goal_robot: ", self.delta_heading_goal_robot, "state: " , self.distance_to_goal_state, "; ", self.heading_angle_state)
         return (self.distance_to_goal_state, self.heading_angle_state)
 
     def robot_set_pos(self, randomized=False):
@@ -404,7 +430,7 @@ class ControlNode:
 
         checkpoint.pose.position.x = x
         checkpoint.pose.position.y = y
-        checkpoint.pose.position.z = 0.0
+        checkpoint.pose.position.z = 0.2
 
         [x_q, y_q, z_q, w_q] = quaternion_from_euler(0.0, 0.0, math.radians(theta))
 
@@ -427,7 +453,7 @@ class ControlNode:
         return (x, y, theta)
 
     def get_lidar_readings_callback(self, data):
-        print("got lidar data")
+        #print("got lidar data")
         self.lidar_distances = np.array([])
         self.lidar_angles = np.array([])
 
@@ -470,10 +496,10 @@ class ControlNode:
         return np.array(range(action_no))
 
     # Create state space for Q table
-    def create_state_space(self, state_dims=[3, 3, 3, 3, 3, 3]):
+    def create_state_space(self, states):
         x = []
-        for i in range(len(state_dims)):
-            x.append(range(state_dims[i]))
+        for i in range(len(states)):
+            x.append(range(len(states[i])))
 
         state_space = product(*x)
         return np.array(list(state_space))
